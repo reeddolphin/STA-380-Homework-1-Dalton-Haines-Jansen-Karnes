@@ -1,0 +1,27 @@
+---
+title: "STA-380-Homework-1-Dalton-Haines-Jensen-Karnes"
+output: html_document
+---
+Contributors: Reed Dalton, Corey Haines, Alex Jensen, McKenna Karnes
+
+#Probability Practice
+
+### Part A. 
+Given a single survey question to visitors to a particular website, what fraction of people who truthfully answered the question answered yes?      
+There are two types of clickers: Random Clickers (RC), and Truthful Clickers (TC).     
+There are two answers to the survey: yes and no.   
+The expected fraction of Random Clickers (RC) is 0.3.     
+The expected fraction of Truthful Clickers (TC) is 0.7.     
+The probability that the Random Clickers (RC) selects yes is .5 and selects no is .5 as well.    
+The results of the survey were such that 65% said Yes and 35% said No.     
+```{r}
+prob.yes = 0.65
+prob.no = 0.35
+prob.yes.given.RC = 0.5
+prob.no.given.RC = 0.5
+prob.TC = 0.7
+prob.RC = 0.3
+prob.yes.given.TC = (prob.yes - (prob.RC * prob.yes.given.RC))/prob.TC
+prob.yes == prob.TC * prob.yes.given.TC + prob.RC * prob.yes.given.RC
+prob.yes.given.TC
+```
