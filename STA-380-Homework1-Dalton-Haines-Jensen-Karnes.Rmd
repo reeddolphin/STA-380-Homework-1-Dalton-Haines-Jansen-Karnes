@@ -8,12 +8,13 @@ Contributors: Reed Dalton, Corey Haines, Alex Jensen, McKenna Karnes
 
 ### Part A. 
 Given a single survey question to visitors to a particular website, what fraction of people who truthfully answered the question answered yes?      
-There are two types of clickers: Random Clickers (RC), and Truthful Clickers (TC).     
-There are two answers to the survey: yes and no.   
-The expected fraction of Random Clickers (RC) is 0.3.     
-The expected fraction of Truthful Clickers (TC) is 0.7.     
-The probability that the Random Clickers (RC) selects yes is .5 and selects no is .5 as well.    
-The results of the survey were such that 65% said Yes and 35% said No.     
+* There are two types of clickers: Random Clickers (RC), and Truthful Clickers (TC)     
+* There are two answers to the survey: yes and no   
+* The expected fraction of Random Clickers (RC) is 0.3     
+* The expected fraction of Truthful Clickers (TC) is 0.7     
+* The probability that the Random Clickers (RC) selects yes is .5   
+* The probability that the Random Clickers (RC) selects no is .5      
+The results of the survey were such that 65% said Yes and 35% said No.          
 ```{r}
 prob.yes = 0.65
 prob.no = 0.35
@@ -22,6 +23,31 @@ prob.no.given.RC = 0.5
 prob.TC = 0.7
 prob.RC = 0.3
 prob.yes.given.TC = (prob.yes - (prob.RC * prob.yes.given.RC))/prob.TC
-prob.yes == prob.TC * prob.yes.given.TC + prob.RC * prob.yes.given.RC
-prob.yes.given.TC
+
 ```
+`prob.yes` = `prob.TC` \* `prob.yes.given.TC` + `prob.RC` \* `prob.yes.given.RC`
+
+The percentage of Truthful Clickers who answered "Yes" to the the simple survey is `r prob.yes.given.TC`
+
+### Part B.
+Medical test for disease using Bayes Formula. 
+* The sensitivity is about 0.993. That is, if someone has the disease, there is a probability of 0.993 that they will test positive.     
+* The specificity is about 0.9999. This means that if someone doesn't have the disease, there is probability of 0.9999 that they will test negative.     
+* About 0.0025% of all people in the general population have the disease
+If someone tests positive for the disease, what is the probability they actually have the disease?
+
+```{r}
+pop.infected = 0.000025
+pop.clean = 0.999975
+
+infected.pos = 0.993
+infected.neg = 0.007
+
+clean.pos = 0.0001
+clean.neg = 0.9999
+infected.test.pos = (infected.pos*pop.infected)/(infected.pos*pop.infected + clean.pos*pop.clean)
+infected.test.pos = infected.test.pos * 100
+infected.test.pos
+```
+If someone tested positive for the disease, there is only a `r infected.test.pos`% chance that they actually have the disease. 
+Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population's health systems. 
