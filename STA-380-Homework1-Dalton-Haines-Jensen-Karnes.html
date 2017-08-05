@@ -147,7 +147,21 @@ prob.yes.given.TC = (prob.yes - (prob.RC * prob.yes.given.RC))/prob.TC</code></p
 <h3>Part B.</h3>
 <p>Medical test for disease using Bayes Formula. * The sensitivity is about 0.993. That is, if someone has the disease, there is a probability of 0.993 that they will test positive.<br />
 * The specificity is about 0.9999. This means that if someone doesn’t have the disease, there is probability of 0.9999 that they will test negative.<br />
-* In the general population about 0.0025% of all people have the disease</p>
+* About 0.0025% of all people in the general population have the disease If someone tests positive for the disease, what is the probability they actually have the disease?</p>
+<pre class="r"><code>pop.infected = 0.000025
+pop.clean = 0.999975
+
+infected.pos = 0.993
+infected.neg = 0.007
+
+clean.pos = 0.0001
+clean.neg = 0.9999
+infected.test.pos = (infected.pos*pop.infected)/(infected.pos*pop.infected + clean.pos*pop.clean)
+infected.test.pos = infected.test.pos * 100
+infected.test.pos</code></pre>
+<pre><code>## [1] 19.88824</code></pre>
+<p>If someone tested positive for the disease, there is only a 19.8882413% chance that they actually have the disease.</p>
+<p>Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population’s health systems.</p>
 </div>
 </div>
 
