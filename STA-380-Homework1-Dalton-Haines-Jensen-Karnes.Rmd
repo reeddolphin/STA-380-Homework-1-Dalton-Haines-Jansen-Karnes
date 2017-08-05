@@ -2,7 +2,7 @@
 title: "STA-380-Homework-1-Dalton-Haines-Jensen-Karnes"
 output: html_document
 ---
-Contributors: Reed Dalton, Corey Haines, Alex Jensen, McKenna Karnes
+Contributors: Reed Dalton, Corey Haines, Alex Jansen, McKenna Karnes
 
 #Probability Practice
 
@@ -51,3 +51,8 @@ infected.test.pos
 ```
 If someone tested positive for the disease, there is only a `r infected.test.pos`% chance that they actually have the disease. 
 Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population's health systems. 
+=======
+prob.yes == prob.TC * prob.yes.given.TC + prob.RC * prob.yes.given.RC
+prob.yes.given.TC
+```
+>>>>>>> 7521a9699de034e26960f9f3df5c0979caeec7e1
