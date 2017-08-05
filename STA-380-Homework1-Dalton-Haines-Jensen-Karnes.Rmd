@@ -51,4 +51,45 @@ infected.test.pos = infected.test.pos * 100
 ```
 If someone tested positive for the disease, there is only a `r infected.test.pos`% chance that they actually have the disease.  
  
-Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population's health systems. 
+Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population's health systems.       
+
+#Exploratory Analysis: Green Buildings     
+* The baseline construction costs are $100 million, with a 5% expected premium for green certification.     
+```{r}
+#setwd('/Users/Reeddalton/Documents/GitHub/STA-380-Homework-1-Dalton-Haines-Jensen-Karnes')
+GreenBuildings = read.csv('greenbuildings.csv')
+
+
+```
+
+#Bootstrapping and ETF Returns
+```{r}
+library('fFimport')
+#this doesnt seem to work
+```
+
+
+#Market Segmentation and NutrientH2O
+```{r}
+social_marketing = read.csv('social_marketing.csv')
+
+sm <- social_marketing[,-1]/rowSums(social_marketing[,-1], na.rm = FALSE)
+sm = cbind(X = social_marketing[,1], sm)
+
+social_marketing$Total = rowSums(social_marketing[,-1], na.rm = FALSE)
+
+total_tweets_by_category = colSums(social_marketing[,-1], na.rm = FALSE)
+sort(total_tweets_by_category)
+```
+I created a matrix where I found the proportion that each user tweeted about each category. This was done in an attempt to standardize across the distribution of activity for users. 
+
+I then added the total number of tweets per user to the last column of social_marketing. I then found the total number of tweets for each of the 36 different categories.  
+
+From inspecting the sm dataframe, I am not as concerned about tweets categorized as "spam". No account tweets out more than 2 tweets categorized as spam, and the highest percentage of an account's tweets being categorized as spam is 7%.   
+
+However, "adult" is a little less clear, as there are 2 accounts where half of the tweets are adult. These are probably just horny old men who don't understand how to use twitter and will still consume NutrientH2O, so I think we can leave them in. 
+
+
+
+
+
