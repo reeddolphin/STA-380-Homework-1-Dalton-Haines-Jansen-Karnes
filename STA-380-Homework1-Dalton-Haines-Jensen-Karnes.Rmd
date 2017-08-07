@@ -1,8 +1,8 @@
 ---
-title: "STA-380-Homework-1-Dalton-Haines-Jensen-Karnes"
+title: "STA-380-Homework-1-Dalton-Haines-Jansen-Karnes"
 output: html_document
 ---
-Contributors: Reed Dalton, Corey Haines, Alex Jensen, McKenna Karnes
+Contributors: Reed Dalton, Corey Haines, Alex Jansen, McKenna Karnes
 
 #Probability Practice
 
