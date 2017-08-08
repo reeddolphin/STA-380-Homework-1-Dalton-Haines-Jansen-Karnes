@@ -1,8 +1,8 @@
 ---
-title: "STA-380-Homework-1-Dalton-Haines-Jensen-Karnes"
+title: "STA-380-Homework-1-Dalton-Haines-Jansen-Karnes"
 output: html_document
 ---
-Contributors: Reed Dalton, Corey Haines, Alex Jensen, McKenna Karnes
+Contributors: Reed Dalton, Corey Haines, Alex Jansen, McKenna Karnes
 
 #Probability Practice
 
@@ -56,7 +56,7 @@ Given our calculations, implementing a universal testing policy for this disease
 #Exploratory Analysis: Green Buildings     
 * The baseline construction costs are $100 million, with a 5% expected premium for green certification.     
 ```{r}
-#setwd('/Users/Reeddalton/Documents/GitHub/STA-380-Homework-1-Dalton-Haines-Jensen-Karnes')
+#setwd('/Users/Reeddalton/Documents/GitHub/STA-380-Homework-1-Dalton-Haines-Jansen-Karnes')
 GreenBuildings = read.csv('greenbuildings.csv')
 
 
@@ -64,8 +64,117 @@ GreenBuildings = read.csv('greenbuildings.csv')
 
 #Bootstrapping and ETF Returns
 ```{r}
-library('fFimport')
-#this doesnt seem to work
+library(fImport)
+library(mosaic)
+library(foreach)
+library(quantmod)
+
+#Import the stocks
+mystocks = c("SPY", "TLT", "LQD", "EEM", "VNQ")
+getSymbols(mystocks)
+
+#Adjust for splits and dividends
+SPYa = adjustOHLC(SPY)
+TLTa = adjustOHLC(TLT)
+LQDa = adjustOHLC(LQD)
+EEMa = adjustOHLC(EEM)
+VNQa = adjustOHLC(VNQ)
+
+set.seed(1)
+#############################
+#########Even Split Portfolio
+#############################
+
+#Setting up an all returns matrix showing closing prices for each day 
+all_returns = cbind(ClCl(SPYa),ClCl(TLTa),ClCl(LQDa), ClCl(EEMa), ClCl(VNQa))
+all_returns = as.matrix(na.omit(all_returns))
+
+n_days = 20#i.e. four weeks
+
+#Setting up the Even Split Portfolio and using Bootstrap to find VaR
+initial.wealth = 100000
+sim.even = foreach(i=1:5000, .combine = 'rbind')%do%{
+  days = 20
+  total.wealth = initial.wealth
+  even.weight = c(0.2,0.2,0.2,0.2,0.2)
+  even.holdings = even.weight*total.wealth
+  even.wealthtracker = rep(0,days)
+  #loop over four trading weeks
+  for(today in 1:days){
+    return.today = resample(all_returns, 1, orig.ids = FALSE)
+    even.holdings = even.holdings + even.holdings*return.today
+    total.wealth = sum(even.holdings)
+    even.wealthtracker[today] = total.wealth
+  }
+  even.wealthtracker
+}
+
+#Calculate 5% VaR for even portfolio
+even.split.VaR = quantile(sim.even[,n_days], 0.05) - initial.wealth
+print(sprintf('The value at risk at the five percent level for our even split portfolio is %f: ', even.split.VaR))
+
+
+##################
+###### Safer Split
+##################
+
+safe_returns = cbind(ClCl(SPYa),ClCl(TLTa),ClCl(LQDa))
+safe_returns = as.matrix(na.omit(safe_returns))
+
+#Setting up the Safe Split Portfolio and using Bootstrap to find VaR
+
+initial.wealth = 100000
+
+sim.safe = foreach(i=1:5000, .combine = 'rbind')%do%{
+  days = 20
+  total.wealth = initial.wealth
+  safe.weight = c(1/3,1/3,1/3)
+  safe.holdings = safe.weight*total.wealth
+  safe.wealthtracker = rep(0,days)
+  #loop over four trading weeks
+  for(today in 1:days){
+    return.today = resample(safe_returns, 1, orig.ids = FALSE)
+    safe.holdings = safe.holdings + safe.holdings*return.today
+    total.wealth = sum(safe.holdings)
+    safe.wealthtracker[today] = total.wealth
+  }
+  safe.wealthtracker
+}
+
+#Calculate 5% VaR for safe portfolio
+safe.split.VaR = quantile(sim.safe[,n_days], 0.05) - initial.wealth
+print(sprintf('The value at risk at the five percent level for our safe split portfolio is %f: ', safe.split.VaR))
+
+########################
+####Aggressive Portfolio
+########################
+aggressive_returns = cbind(ClCl(EEMa),ClCl(VNQa))
+aggressive_returns = as.matrix(na.omit(aggressive_returns))
+
+#Setting up the Agressive Split Portfolio and using Bootstrap to find VaR
+
+initial.wealth = 100000
+
+sim.aggressive = foreach(i=1:5000, .combine = 'rbind')%do%{
+  days = 20
+  total.wealth = initial.wealth
+  aggressive.weight = c(1/2,1/2)
+  aggressive.holdings = aggressive.weight*total.wealth
+  aggressive.wealthtracker = rep(0,days)
+  #loop over four trading weeks
+  for(today in 1:days){
+    return.today = resample(aggressive_returns, 1, orig.ids = FALSE)
+    aggressive.holdings = aggressive.holdings + aggressive.holdings*return.today
+    total.wealth = sum(aggressive.holdings)
+    aggressive.wealthtracker[today] = total.wealth
+  }
+  aggressive.wealthtracker
+}
+
+#Calculate 5% VaR for aggressive portfolio
+aggressive.split.VaR = quantile(sim.aggressive[,n_days], 0.05) - initial.wealth
+print(sprintf('The value at risk at the five percent level for our aggressive split portfolio is %f: ', aggressive.split.VaR))
+
 ```
 
 
