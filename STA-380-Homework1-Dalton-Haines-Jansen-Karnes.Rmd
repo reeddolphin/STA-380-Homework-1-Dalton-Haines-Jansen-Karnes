@@ -3,6 +3,19 @@ title: "STA-380-Homework-1-Dalton-Haines-Jansen-Karnes"
 output: html_document
 ---
 Contributors: Reed Dalton, Corey Haines, Alex Jansen, McKenna Karnes
+```{r include = FALSE}
+library(fImport)
+library(mosaic)
+library(foreach)
+library(quantmod)
+library(cluster)
+library(ggplot2)
+
+set.seed(1)
+
+```
+
+
 
 #Probability Practice
 
@@ -63,14 +76,23 @@ GreenBuildings = read.csv('greenbuildings.csv')
 ```
 
 #Bootstrapping and ETF Returns
+* To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:  
+    + US domestic equities (SPY: the S&P 500 stock index)      
+    + US Treasury bonds (TLT)      
+    + Investment-grade corporate bonds (LQD)     
+    + Emerging-market equities (EEM)      
+    + Real estate (VNQ)     
+* We considered three portfolios with varying levels of risk:
+    +Even Split: 20% of  assets in each of the five ETFs      
+    + Safer Split: investments  assets in at least three classes      
+    + Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk      
 ```{r}
-library(fImport)
-library(mosaic)
-library(foreach)
-library(quantmod)
+
 
 #Import the stocks
 mystocks = c("SPY", "TLT", "LQD", "EEM", "VNQ")
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
 getSymbols(mystocks)
 
 #Adjust for splits and dividends
@@ -80,7 +102,12 @@ LQDa = adjustOHLC(LQD)
 EEMa = adjustOHLC(EEM)
 VNQa = adjustOHLC(VNQ)
 
-set.seed(1)
+```
+
+
+###Even Split Portfolio
+
+```{r}
 #############################
 #########Even Split Portfolio
 #############################
@@ -112,8 +139,11 @@ sim.even = foreach(i=1:5000, .combine = 'rbind')%do%{
 #Calculate 5% VaR for even portfolio
 even.split.VaR = quantile(sim.even[,n_days], 0.05) - initial.wealth
 print(sprintf('The value at risk at the five percent level for our even split portfolio is %f: ', even.split.VaR))
+```
 
 
+###Safer Split
+```{r}
 ##################
 ###### Safer Split
 ##################
@@ -144,7 +174,11 @@ sim.safe = foreach(i=1:5000, .combine = 'rbind')%do%{
 #Calculate 5% VaR for safe portfolio
 safe.split.VaR = quantile(sim.safe[,n_days], 0.05) - initial.wealth
 print(sprintf('The value at risk at the five percent level for our safe split portfolio is %f: ', safe.split.VaR))
+```
 
+
+##Aggressive Portfolio
+```{r}
 ########################
 ####Aggressive Portfolio
 ########################
@@ -189,7 +223,7 @@ social_marketing$Total = rowSums(social_marketing[,-1], na.rm = FALSE)
 
 total_tweets_by_category = colSums(social_marketing[,-1], na.rm = FALSE)
 sort(total_tweets_by_category)
-pairs(social_marketing[,-1])
+#pairs(social_marketing[,-1])
 ```
 I created a matrix where I found the proportion that each user tweeted about each category. This was done in an attempt to standardize across the distribution of activity for users. 
 
@@ -212,21 +246,20 @@ Variance Explained ", ylim=c(0,1) ,type='b')
 plot(cumsum (pve), xlab=" Principal Component ", ylab ="
 Cumulative Proportion of Variance Explained ", ylim=c(0,1) ,
 type='b')
-````
+```
 
 ```{r}
 set.seed (3)
 km.out =kmeans(social_marketing[,-1],3, nstart =50)
 km.out$tot.withinss
 
-plot(social_marketing[,-1], col =(km.out$cluster +1) , main="K-Means Clustering
-Results with K=3", pch =20, cex =2)
+#plot(social_marketing[,-1], col =(km.out$cluster +1) , main="K-Means Clustering Results with K=3", pch =20, cex =2)
 
 
-````
+```
+
 ```{r}
-library(cluster)
-library(ggplot2)
+
 data(social_marketing[,-1])
 km    <- kmeans(social_marketing[,-1],3)
 dissE <- daisy(social_marketing[,-1]) 
