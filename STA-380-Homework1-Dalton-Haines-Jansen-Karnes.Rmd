@@ -10,7 +10,9 @@ library(foreach)
 library(quantmod)
 library(cluster)
 library(ggplot2)
-
+library(flexclust)
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
 set.seed(1)
 
 ```
@@ -76,7 +78,7 @@ GreenBuildings = read.csv('greenbuildings.csv')
 ```
 
 #Bootstrapping and ETF Returns
-* To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:  
+* To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:
     + US domestic equities (SPY: the S&P 500 stock index)      
     + US Treasury bonds (TLT)      
     + Investment-grade corporate bonds (LQD)     
@@ -85,14 +87,13 @@ GreenBuildings = read.csv('greenbuildings.csv')
 * We considered three portfolios with varying levels of risk:
     +Even Split: 20% of  assets in each of the five ETFs      
     + Safer Split: investments  assets in at least three classes      
-    + Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk      
+    + Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk   
+* We have assumed the portfolio is rebalanced for free each day i.e. with zero transaction costs
 ```{r}
 
 
 #Import the stocks
 mystocks = c("SPY", "TLT", "LQD", "EEM", "VNQ")
-options("getSymbols.warning4.0"=FALSE)
-options("getSymbols.yahoo.warning"=FALSE)
 getSymbols(mystocks)
 
 #Adjust for splits and dividends
@@ -103,6 +104,39 @@ EEMa = adjustOHLC(EEM)
 VNQa = adjustOHLC(VNQ)
 
 ```
+#Marshals appropriate evidence
+I think we need to do some sort of visualization here to show why bonds and the s&p500 are 'safe' investments, while real estate and emerging markets are 'risky' investments.
+```{r}
+SPYa.adj <- SPYa[,6]
+TLTa.adj <- TLTa[,6]
+LQDa.adj <- LQDa[,6]
+EEMa.adj <- EEMa[,6]
+VNQa.adj <- VNQa[,6]
+
+SPYa1 = as.numeric(SPYa.adj[1])
+TLTa1 = as.numeric(TLTa.adj[1])
+LQDa1 = as.numeric(LQDa.adj[1])
+EEMa1 = as.numeric(EEMa.adj[1])
+VNQa1 = as.numeric(VNQa.adj[1])
+
+SPYa.ts =SPYa.adj/SPYa1
+TLTa.ts =TLTa.adj/TLTa1
+LQDa.ts =LQDa.adj/LQDa1
+EEMa.ts =EEMa.adj/EEMa1
+VNQa.ts =VNQa.adj/VNQa1
+
+basket <- cbind(SPYa.ts,TLTa.ts,LQDa.ts,EEMa.ts,VNQa.ts  )
+zoo.basket <- as.zoo(basket)
+tsRainbow <- rainbow(ncol(zoo.basket))
+plot(x = zoo.basket, ylab = "Cumulative Return", main = "Cumulative Returns",col = tsRainbow, screens = 1)
+legend(x = "topleft", legend = c("SPY", "TLT", "LQD", "EEM", "VNQ"), lty = 1,col = tsRainbow)
+
+
+
+```
+
+
+
 
 
 ###Even Split Portfolio
