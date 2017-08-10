@@ -11,6 +11,8 @@ library(quantmod)
 library(cluster)
 library(ggplot2)
 library(flexclust)
+library(dplyr)
+library(ggplot2)
 options("getSymbols.warning4.0"=FALSE)
 options("getSymbols.yahoo.warning"=FALSE)
 set.seed(1)
@@ -69,13 +71,67 @@ If someone tested positive for the disease, there is only a `r infected.test.pos
 Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population's health systems.       
 
 #Exploratory Analysis: Green Buildings     
-* The baseline construction costs are $100 million, with a 5% expected premium for green certification.     
+Our approach to this problem was to narrow down the dataset of apartments given to a subset more similar to the potential Austin apartment. We could then compare the cost of green to nongreen buildings in each cluster in order to determine if there is a premium on green building rent across the board.
+
+After determining this, we were able to make a suggestion to the real-estate developer on whether it would be profitable to build a green building.  If the premium on green rent was higher than the premium on green construction costs, then we decide she should build green.
+
+
 ```{r}
 #setwd('/Users/Reeddalton/Documents/GitHub/STA-380-Homework-1-Dalton-Haines-Jansen-Karnes')
-GreenBuildings = read.csv('greenbuildings.csv')
+gb = read.csv('greenbuildings.csv')
 
+rent.days=plot_ly(data=gb,x=~total_dd_07,y=~Rent)
+```
+`r rent.days`
+When determining which variables to use to narrow down our dataset to create a target subset similar to the building to be constructed, we considered including values related to utilities (total_dd_07,Gas_Costs, Electricity_Costs, net),but we found that a large total number of heating and cooling days actually did not seem to be related to a large rent. Given this information, taking gas and electricity costs into account no longer intuitively felt useful in evaluating the Austin apartment's rent. We also found it nearly impossible to distinguish a rent change in buildings that include utilities in rent, as we do not know the utility cost nor if the Austin building will include them.
+
+```{r}
+p = plot_ly(data=gb,x=~age, y=~stories)
+```
+`r p`
+We decided to cut age off at 50 and stories at 30 to capture a subset more similar to the building the real-estate developer is proposing (will be 0 years old and 15 stories)
+
+```{r}
+gb = gb[gb$age <=50,]
+gb = gb[gb$stories <=30,]
+q = plot_ly(data=gb,x=~age, y=~stories)
+```
+`r q`
+Our new plot showing the filtered data set
+
+```{r}
+#filtering out green and non green buildings
+greenbuildings = gb[gb$green_rating == 1,]  
+nongreen = gb[gb$green_rating==0,]
+#Range of green rents and non green rents
+green.rent = plot_ly(data=greenbuildings,x=~Rent)
+non.green.rent = plot_ly(data=nongreen, x=~Rent)
 
 ```
+Both bar charts have somewhat wide ranges with most of the data being in between 0 and 80. Because of this, the on-staff statistician's method of separating and merely taking averages wasn't prudent. We need to be comparing green and non green within clusters with similar characteristics to our building.
+
+```{r}
+#Set up vectors to hold the ratios
+greenratios = c()
+nongreenratios = c()
+greenratios = greenbuildings$Rent/greenbuildings$cluster_rent
+nongreenratios = nongreen$Rent/nongreen$cluster_rent
+
+#average
+average.green = mean(greenratios)
+average.nongreen = mean(nongreenratios)
+
+#averages on averages
+quotientavg = average.green/average.nongreen
+```
+`r mean(quotientavg)`
+
+We determined that the premium on green rent was 6.75%. This is larger than the 5% premium on green construction in the Austin area, so we will advise the real-estate developer to proceed with building green.
+
+
+
+
+
 
 #Bootstrapping and ETF Returns
 * To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:
@@ -85,7 +141,7 @@ GreenBuildings = read.csv('greenbuildings.csv')
     + Emerging-market equities (EEM)      
     + Real estate (VNQ)     
 * We considered three portfolios with varying levels of risk:
-    +Even Split: 20% of  assets in each of the five ETFs      
+    +Even Split: 20% of  assets in each of the five ETFs 
     + Safer Split: investments  assets in at least three classes      
     + Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk   
 * We have assumed the portfolio is rebalanced for free each day i.e. with zero transaction costs
