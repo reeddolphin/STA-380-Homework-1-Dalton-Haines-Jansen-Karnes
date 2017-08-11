@@ -13,6 +13,7 @@ library(ggplot2)
 library(flexclust)
 library(TeachingDemos)
 library(LICORS)
+library(plotly)
 options("getSymbols.warning4.0"=FALSE)
 options("getSymbols.yahoo.warning"=FALSE)
 set.seed(1)
@@ -24,14 +25,15 @@ set.seed(1)
 #Probability Practice
 
 ### Part A. 
-Given a single survey question to visitors to a particular website, what fraction of people who truthfully answered the question answered yes?      
-* There are two types of clickers: Random Clickers (RC), and Truthful Clickers (TC)     
-* There are two answers to the survey: yes and no   
-* The expected fraction of Random Clickers (RC) is 0.3     
-* The expected fraction of Truthful Clickers (TC) is 0.7     
 * The probability that the Random Clickers (RC) selects yes is .5   
-* The probability that the Random Clickers (RC) selects no is .5      
-The results of the survey were such that 65% said Yes and 35% said No.          
+Given a single survey question presented to visitors of a particular website, what percentage of people who truthfully answered the question selected yes?      
+* There are two types of clickers: Random Clickers (RC), and Truthful Clickers (TC)   
+* There are two answers to the survey: yes and no
+* The expected fraction of Random Clickers (RC) is 0.3
+* The expected fraction of Truthful Clickers (TC) is 0.7  
+* The probability that the Random Clickers (RC) selects yes is .5
+* The probability that the Random Clickers (RC) selects no is .5       
+The results of the survey were such that 65% said Yes and 35% said No.            
 ```{r}
 prob.yes = 0.65
 prob.no = 0.35
@@ -50,8 +52,8 @@ The percentage of Truthful Clickers who answered "Yes" to the the simple survey 
 Medical test for disease using Bayes Formula.       
 * The sensitivity is about 0.993. That is, if someone has the disease, there is a probability of 0.993 that they will test positive.     
 * The specificity is about 0.9999. This means that if someone doesn't have the disease, there is probability of 0.9999 that they will test negative.     
-* About 0.0025% of all people in the general population have the disease
-If someone tests positive for the disease, what is the probability they actually have the disease?
+* About 0.0025% of all people in the general population have the disease.     
+If someone tests positive for the disease, what is the probability that they are actually infected?      
 
 ```{r}
 pop.infected = 0.000025
@@ -68,29 +70,97 @@ infected.test.pos = infected.test.pos * 100
 ```
 If someone tested positive for the disease, there is only a `r infected.test.pos`% chance that they actually have the disease.  
  
-Given our calculations, implementing a universal testing policy for this disease would be problematic because over 80% of the time a test for the disease is positive, the person will not actually be infected. This could lead to mass hysteria and put unneeded strain on the population's health systems.       
+Given our calculations, implementing a universal testing policy for this disease would be problematic because for over 80% of positive test, the patient will not actually be infected with the disease. This could lead to mass hysteria and put unneeded strain on the population's health systems.       
 
 #Exploratory Analysis: Green Buildings     
-* The baseline construction costs are $100 million, with a 5% expected premium for green certification.     
+In order to determine if investing in a green certification for a new mixed-use building in East Austin would be economically advantageous for the developer, we attempted to provide a more convincing analysis than preliminary recommendations made by the developer's staff member.           
+      
+Formulating our own independent analysis, we first narrowed down the available dataset of commercial rental properties to a subset that mimicked the environment presented at the East Austin development site.       
+      
+Once we settled on the particular subset of data we sought to analyze, we began to compare the cost of green buildings to nongreen buildings in each cluster, hoping to identify a premium for green buildings that was reflected in the price of renting a green building.        
+       
+After determining that a premium did in fact exist, we drafted our own recommendation regarding the profitabity of "going green" on the development. In order to make such a recommendation, we needed to provide evidence for why the revenue generated from the green rent premium exeeded the costs of constructing a green building.        
+
+
 ```{r}
-#setwd('/Users/Reeddalton/Documents/GitHub/STA-380-Homework-1-Dalton-Haines-Jansen-Karnes')
-GreenBuildings = read.csv('greenbuildings.csv')
+gb = read.csv('greenbuildings.csv')
+rent.days=plot_ly(data=gb,x=~total_dd_07,y=~Rent)
+```
+`r rent.days`
+      
+###Variable & Subset Selection
+To create a target subset similar to the building being constructed, we needed to narrow down our dataset to the most relevant variables.     
+
+We first considered the role of utilities (`total_dd_07`,`Gas_Costs`, `Electricity_Costs`, `net`) on price. We found that reporting a high number of heating and cooling days per year did not correspond to relatively higher rents.      
+
+As a result, taking gas and electricity costs into account no longer intuitively felt useful in evaluating the Austin apartment's rent. In some cases, utilities were even included in the building's rent. Additionally, we did not know how the East Austin building planned to distribute the cost of utilities.      
+
+```{r}
+p = plot_ly(data=gb,x=~age, y=~stories)
+```
+`r p`
+      
+Row Selection:    
+We decided to filter out building built over 50 years ago and building taller than 30 stories. This decision allowed us to capture a subset of building cluster more inline with the attributes of the proposed building in East Austin. (At the time of the new East Austin building's opening,the building will be 0 years old and 15 stories tall).     
+
+```{r}
+gb = gb[gb$age <=50,]
+gb = gb[gb$stories <=30,]
+q = plot_ly(data=gb,x=~age, y=~stories)
+```
+`r q`
+     
+The above plot reflects our new subset of data.      
+```{r}
+#filtering out green and non green buildings
+greenbuildings = gb[gb$green_rating == 1,]  
+nongreen = gb[gb$green_rating==0,]
+#Range of green rents and non green rents
+green.rent = plot_ly(data=greenbuildings,x=~Rent)%>% layout(title = "Rent of Green Buildings",  yaxis = list(title = "Frequency"))
+non.green.rent = plot_ly(data=nongreen, x=~Rent)%>% layout(title = "Rent of NonGreen Buildings",  yaxis = list(title = "Frequency"))
+```
+`r green.rent`
+
+      
+`r non.green.rent`
 
 
+Both bar charts have somewhat wide ranges. Most of the rents falls in between 0 and $80/sqft. Because of this, the on-staff statistician's method of separating and merely taking averages wasn't prudent. A more accurate insight could be attained by analyzing clusters of green and non green buildings with similar characteristics to the building planned for East Austin.     
+
+```{r}
+#Set up vectors to hold the ratios
+greenratios = c()
+nongreenratios = c()
+greenratios = greenbuildings$Rent/greenbuildings$cluster_rent
+nongreenratios = nongreen$Rent/nongreen$cluster_rent
+
+#average
+average.green = mean(greenratios)
+average.nongreen = mean(nongreenratios)
+
+#averages on averages
+quotientavg = average.green/average.nongreen
 ```
 
+We determined that the premium on green rent was 6.75%. This is larger than the 5% premium on green construction in the Austin area, so over the expected lifetime of the building, a green building would generate more revenue than a standard building. Therefore, we will advise the real-estate developer to proceed with building a green development.      
+
+
+
+
+
+
 #Bootstrapping and ETF Returns
-* To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:
-    + US domestic equities (SPY: the S&P 500 stock index)      
-    + US Treasury bonds (TLT)      
-    + Investment-grade corporate bonds (LQD)     
-    + Emerging-market equities (EEM)      
-    + Real estate (VNQ)     
-* Given a notional $100,000 to invest, we considered three portfolios with varying levels of risk:
-    + Even Split: 20% of  assets in each of the five ETFs      
-    + Safer Split: investments  assets in at least three classes      
-    + Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk   
-* We have assumed the portfolio is rebalanced for free each day i.e. rebalanced with zero transaction costs
+*To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:     
+    +US domestic equities (SPY: the S&P 500 stock index)     
+    +US Treasury bonds (TLT)     
+    +Investment-grade corporate bonds (LQD)    
+    +Emerging-market equities (EEM)     
+    +Real estate (VNQ)    
+*We considered three portfolios with varying levels of risk:     
+    +Even Split: 20% of  assets in each of the five ETFs     
+    +Safer Split: investments  assets in at least three classes    
+    +Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk      
+*We have assumed the portfolio is rebalanced for free each day i.e. with zero transaction costs       
 ```{r}
 
 
@@ -106,7 +176,7 @@ EEMa = adjustOHLC(EEM)
 VNQa = adjustOHLC(VNQ)
 
 ```
-* First we imported the last 10 years of prices of the 5 ETFs from Yahoo Finance's database. We made sure to account for any splits or dividends in the ETFs over that time. 
+#EDA Visualzation
 ```{r}
 SPYa.adj <- SPYa[,6]
 TLTa.adj <- TLTa[,6]
@@ -135,11 +205,12 @@ legend(x = "topleft", legend = c("SPY", "TLT", "LQD", "EEM", "VNQ"), lty = 1,col
 
 
 ```
-* Next we plotted the Cumulative Returns of each stock from 2007 to 2017-08-09.      
-    + This allowed us to visualize each ETF's gains/loses over time.    
-    + Visually, it seems that LQD has less volatility than EEM.     
-    + Rather than looking at this graph, we would like a way to standardize our comparison of the risk for investing in each ETF.     
-    + We believe value at risk (VaR) will be a good comparison measure.       
+        
+*Next we plotted the Cumulative Returns of each stock from 2007 to 2017-08-09.          
+    +This allowed us to visualize each ETF's gains/loses over time.     
+    +Visually, it seems that LQD has less volatility than EEM.     
+    +Rather than looking at this graph, we would like a way to standardize our comparison of the risk for investing in each ETF.    
+    +We believe value at risk (VaR) will be a good comparison measure.      
       
 
 
@@ -182,7 +253,7 @@ even.split.VaR = quantile(sim.even[,n_days], 0.05) - initial.wealth
 For our Even Split portfolio, we placed $20,000 in each of the 5 ETFs.    
 
 Even Split:     
-* At the five percent level, The value at risk for our even split portfolio is `r even.split.VaR`.      
+*At the five percent level, The value at risk for our even split portfolio is `r even.split.VaR`.      
 
 ###Safer Split
 ```{r}
@@ -219,7 +290,7 @@ safe.split.VaR = quantile(sim.safe[,n_days], 0.05) - initial.wealth
 For the Safe Split, we limited our portfolio to only 3 ETFs made up of the S&P, Treasury Bonds, and Corporate Bonds. Treasury Bonds are a safe investment because they are guaranteed by the Federal Government and are virtually risk free. Corporate Bonds are a safe investment because they will pay out unless the company defaults. And the S&P is a good sample of how the entire stock market functions, and is diversified enough to not be too influenced by sector fluctuations.     
 
 Safe Split:     
-* At the five percent level, The value at risk for our even split portfolio is `r safe.split.VaR`.
+*At the five percent level, The value at risk for our even split portfolio is `r safe.split.VaR`.    
 
 ### Aggressive Portfolio
 ```{r}
@@ -255,7 +326,7 @@ aggressive.split.VaR = quantile(sim.aggressive[,n_days], 0.05) - initial.wealth
 For the Aggresive Split, we shrunk our portfolio to only 2 ETFs made up of Real Estate and Emerging Market Equities. Real Estate is a risky investment as one could see from the 2008 housing bubble and the forclosures caused by the sub-prime mortgage crisis, but can grow quickly based on speculation. Emerging Market Equities have a high chance of failing due to geopolitics and various other factors, but there are high growth oppurtunities.    
 
 Aggresive Split:      
-* At the five percent level, the value at risk for our even split portfolio is `r aggressive.split.VaR`.    
+*At the five percent level, the value at risk for our even split portfolio is `r aggressive.split.VaR`.    
 
 Comparison:       
 Even Split - `r even.split.VaR`            
@@ -273,15 +344,18 @@ sm_scaled <- scale(sm, center=TRUE, scale=TRUE)
 
 ```
 ### Pre-Proccessing
-* To start, we found the proportion of each follower's tweets per category over their total tweets.     
-* Next, we determined there was likely no realistic way to use `chatter` and `uncategorized` to find interesting insight into NutrientH2O's followers other than their propensity for twitter. Because we scaled by the total number of tweets, we chose to drop these catagories.    
-* Following the previous point, it did not seem like a feasible idea to create a marketing campaign based off of spam tweets.     
-  + No account tweets out more than 2 tweets categorized as `spam`, and the highest percentage of an account's tweets being categorized as `spam` was 7%, for the simplicity of the model we chose to drop the category anyways.    
-* While it is probably not a strong idea for NutrientH2O to make a marketing campaign based on adult themes, we felt that leaving the `adult` category in the data made sense because it captured some demographic information about NutrientH2O followers.    
-* Although potentially redundant, we chose to also center and scale our data to ensure that our kmean centers would be interpretable.    
+*To start, we found the proportion of each follower's tweets per category over their total number of tweets.      
+*Next, we determined that there was likely no realistic way to use `chatter` and `uncategorized` to find interesting insight into NutrientH2O's followers other than the propensity of each follower for tweeting. Because we already decided to scaled each category by the total number of tweets, we chose to drop these catagories.        
+*Following the previous point, it did not seem like a feasible idea to create a marketing campaign based off of spam tweets.     
+  +No account tweets out more than 2 tweets categorized as `spam`, and the highest percentage of an account's tweets being categorized as `spam` was 7%.     
+  +Thus for the simplicity of the model, we chose to drop the `spam` category.    
+*While it is probably not a strong branding idea for NutrientH2O to develop a marketing campaign based on adult themes, we felt that leaving the `adult` category in the data made sense, as it had the posibility to capture some demographic information about NutrientH2O followers.      
+*Although potentially redundant, our final step was to center and scale our data to ensure that our kmean centers would be interpretable.    
 
 ### Determining 'K'
-To try and determine the optimal K-number of clusters to group the categories of tweets by NutrientH2O follower, we first expirmented with finding the number of clusters with the highest CH(k) score when running kmeans++. From the graph, the highest score came when the data was grouped into 3 clusters. 
+Our goal is to group the categories of tweets into an optimal K-number of clusters.    
+
+We first experimented with finding the number of clusters with the highest CH(k) score when running kmeans++. From the graph, the highest score came when the data was grouped into 3 clusters. 
 ```{r}
 ch.index = function(x,kmax,iter.max=100,nstart=10,algorithm="Lloyd") {
   ch = numeric(length=kmax-1)
@@ -304,13 +378,13 @@ k1.hat = a1$k[which.max(a1$ch)]
 plot(a1$k,a1$ch, xlab='K', ylab='CH(K)', type='b', main='K-Means Clustering : CH Index vs K' )
 ```
         
-We then ran Kmeans++, as Kmeans++ has a higher chance of optimizing the objective function and finding the most optimal clustering than normal Kmeans clustering.    
+Next we ran Kmeans++ with 3 clusters, as Kmeans++ solves an augmented objective function that allows it to find the most optimal clustering faster than normal Kmeans.    
 ```{r}
 maxCH = kmeanspp(sm_scaled, 3,iter.max=100,nstart=10,algorithm="Lloyd")
 ```
 
 ### Finding Insights
-In order to develop insights, we examine the distance of each category from the center in each of the cluster. We sorted based on distance and created barcharts for each of the clusters.
+In order to make some sort of inferences about the interests of NutrientH2O's followers for target marketing and branding, we examined the distance of each category from the cluster center. We then sorted based on distance and created barcharts for each of the clusters.
 ```{r}
 ch_cluster_1 = sort(maxCH$centers[1,])
 ch_cluster_2 = sort(maxCH$centers[2,])
@@ -323,13 +397,13 @@ barchart(ch_cluster_1)
 ```
         
 Inferences:      
-* Something about these three clusters doesn't feel right.    
-* The most noticeable attribute is that the second cluster has no distinct groupings on the high or low end. 
-* Intuition says religion 
+* Something about these three clusters doesn't feel right.     
+* The most noticeable attribute is that the second cluster has no distinct groupings on the high or low end.     
+* Intuition says religion     
 
 
 ### Elbow Method
-We continued our exploration for the optimal number of cluster with the implementaiton of the Elbow Method. The Elbow Method requires running kmeans or kmeans++ on multiple k number of clusters and plotting them based on the sum of squared errors (SSE). A visual inspection is performed on the line chart. If there is a noticable inflection point in the line, i.e. at the Elbow, the inflection point is the ideal number of clusters for Kmeans. 
+Continuing our exploration for the optimal number of cluster for use in kmeans, we implemented the Elbow Method. The Elbow Method requires running kmeans or kmeans++ on multiple k-number of clusters and plotting them based on their sum of squared errors (SSE). Next, A visual inspection is performed on the line chart. If there is a noticable change in the direction of the line, the inflection point (i.e. the Elbow) is the ideal number of clusters for Kmeans. 
 ```{r}
 wss <- matrix(,nrow = length(2:10), ncol = 1);
 
@@ -342,7 +416,7 @@ plot(1:10, wss, type="b", xlab="Number of Clusters",
 
 ```
               
-From the graph, there appears ever so slightly to be an inflection point at 6 clusters.     
+From the graph, there ever so slightly appears be an inflection point at 6 clusters.     
 ```{r}
 maxElbow = kmeanspp(sm_scaled, 6,iter.max=100,nstart=10,algorithm="Lloyd")
 ```
