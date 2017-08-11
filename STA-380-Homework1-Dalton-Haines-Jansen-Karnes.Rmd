@@ -73,11 +73,11 @@ If someone tested positive for the disease, there is only a `r infected.test.pos
 Given our calculations, implementing a universal testing policy for this disease would be problematic because for over 80% of positive test, the patient will not actually be infected with the disease. This could lead to mass hysteria and put unneeded strain on the population's health systems.       
 
 #Exploratory Analysis: Green Buildings     
-In order to determine if investing in a green certification for a new mixed-use building in East Austin would be economically advantageous for the developer, we attempted to provide a more convincing analysis than preliminary recommendations made by the developer's staff member.           
+In order to determine if investing in a green certification for a new mixed-use building in East Austin would be economically advantageous for the developer, we attempted to provide a more convincing analysis than the preliminary recommendations made by the developer's staff member.           
       
 Formulating our own independent analysis, we first narrowed down the available dataset of commercial rental properties to a subset that mimicked the environment presented at the East Austin development site. We decided to keep buildings with a very low occupation rates in the data set, as a worse case scenario example for our property in East Austin.      
       
-Once we settled on the particular subset of data we sought to analyze, we began to compare the cost of green buildings to nongreen buildings in each cluster, hoping to identify a premium for green buildings that was reflected in the rent price. Contrary to the on-staff statistician's recommendation, we did not feel that seperating green building and non-green buildings was a good decision because_____        
+Once we settled on the particular subset of data we sought to analyze, we began to compare the cost of green buildings to nongreen buildings in each cluster, hoping to identify a premium for green buildings that was reflected in the rent price. Contrary to the on-staff statistician's recommendation, we did not feel that seperating green building and non-green buildings was a good decision because there was important information captured in the cluster category, which the statistician removed from his analysis.     
        
 After determining that a premium did in fact exist, we drafted our own recommendation regarding the profitabity of "going green" on the development. In order to make such a recommendation, we needed to provide evidence for why the revenue generated from the green rent premium exeeded the costs of constructing a green building.        
 
@@ -398,14 +398,18 @@ barchart(ch_cluster_1)
         
 Inferences:      
 * Something about these three clusters doesn't feel right.     
-* The most noticeable attribute is that the second cluster has no distinct groupings on the high or low end.     
-* Intuition says religion     
+* The most noticeable attribute is that the second cluster has no seperations in the categories. There are no distinct groupings on the high or low end.     
+* Intuitively, the fact that religion and parenting are the strongest factors in the cluster with the lowest sum of squared errors does not fit with our expectations of the primary interests of NutrientH2O's followers. 
 
 
 ### Elbow Method
-Continuing our exploration for the optimal number of cluster for use in kmeans, we implemented the Elbow Method. The Elbow Method requires running kmeans or kmeans++ on multiple k-number of clusters and plotting them based on their sum of squared errors (SSE). Next, A visual inspection is performed on the line chart. If there is a noticable change in the direction of the line, the inflection point (i.e. the Elbow) is the ideal number of clusters for Kmeans. 
+Continuing our exploration for the optimal number of cluster for use in kmeans, we implemented the Elbow Method.     
+
+*The Elbow Method requires running kmeans or kmeans++ on multiple k-number of clusters and plotting them based on their sum of squared errors (SSE).      
+*Next, A visual inspection is performed on the line chart. 
+    +If there is a noticable change in the direction of the line, the inflection point (i.e. the Elbow) is the ideal number of clusters for Kmeans/Kmeans++. 
 ```{r}
-wss <- matrix(,nrow = length(2:10), ncol = 1);
+wss <- matrix(,nrow = length(2:10), ncol = 1)
 
   for (i in 2:10) wss[i] <- sum(kmeanspp(sm_scaled,i,iter.max=100,nstart=10,algorithm="Lloyd")$withinss)
 
@@ -421,6 +425,7 @@ From the graph, there ever so slightly appears be an inflection point at 6 clust
 maxElbow = kmeanspp(sm_scaled, 6,iter.max=100,nstart=10,algorithm="Lloyd")
 ```
 
+Creating 6 clusters using kmeans++ seems to produce segments of categories that are more interesting and with greater seperation than the 3 ckuster classification.  
 ```{r}
 elbow_cluster_1 = sort(maxElbow$centers[1,])
 elbow_cluster_2 = sort(maxElbow$centers[2,])
@@ -428,18 +433,51 @@ elbow_cluster_3 = sort(maxElbow$centers[3,])
 elbow_cluster_4 = sort(maxElbow$centers[4,])
 elbow_cluster_5 = sort(maxElbow$centers[5,])
 elbow_cluster_6 = sort(maxElbow$centers[6,])
-par(mfrow=c(3,2))
 #Clusters plotted in order of decreasing withinss
 barchart(elbow_cluster_6)
+```
+Based on categorical seperation, we can interpret each cluster (in order of increasing sum of squared error of each cluster) as following:      
+
+*`politics` and `news` have the most seperation out of the strongest cluster. As Donald Trump has shown over the last 2 and a half years, Twitter is one of the most populat places on the internet for people to espouse their political views. While we don't find out much demographic information from this first cluster, we can make the assumption that many of NutrientH2O's followers consume media, and especially media related to news and politics.  
+    +These users were least interested in: `cooking`, `health nutrition`, and `photo sharing`.       
+        
+```{r}
 barchart(elbow_cluster_2)
+```
+          
+*`health_nutrition`,`personal_fitness`, and `outdoors`have the most seperation out of the second strongest cluster. These users seem to be in the more stereotypical category of NutrientH2O consumers.
+    +These users were least interested in: `politics`,`sports_fandom`,and `photo_sharing`.
+
+```{r}
 barchart(elbow_cluster_1)
+```
+         
+*`photo_sharing` and `shopping` have the most seperation out of the third strongest cluster. Stereotypically, these activities are more feminine than masculine activites. 
+    +These users were least interested in: `food`,`cooking`, and `health_nutrition`
+
+     
+```{r}
 barchart(elbow_cluster_3)
+```
+         
+*`college_uni` and `online_gaming` have the most seperation out of the fourth strongest cluster. These users seem to be your stereotypical college males.
+    +These users were least interested in: `cooking`,`personal_fitness`, and `health_nutrition`
+     
+```{r}
 barchart(elbow_cluster_4)
+```
+        
+*`cooking`,`fashion`, and `beauty` have the most seperation out of the fith strongest cluster. Another cluster of categories that can generally be thought of as more feminine than masculine activites.
+    +These users were least interested in: `politics`, `food`,and `sports_fandom`
+```{r}
 barchart(elbow_cluster_5)
-
-
-
-
 ```
 
+*`religion`,`parenting`, and`sports_fandom`have the most seperation out of the weakest cluster. This chart is almost identical to the strongest clustering of categories when the number of clusters was 3. The fact that the two clusters are so similar corroborates our decision to explore other numbers of cluster than 3.
+    +These users were least interested in: `health_nutrition`,`politics`, and `photo_sharing`
 
+###Conclusion 
+From our observations of the most right of center categories in each clusters, we can make some generalizations about NutrientH2O's followers. 
+*One shocking observation is that `sports_playing` doesn't appear in the top categories of any of the clusters. This is generally the first activity associated with sports drinks. 
+*Next, it across most clusters, the demographic of NutrientH2O's followers is a younger demographic. the weakest cluster is the only cluster that seems to suggest users that are GenXers or parents. 
+*There are more clusters that are dominated by stereotypically "feminine," activities. There is one category that coresponds to inactive, videogame-playing college aged males, and one for middle aged people. 
