@@ -75,9 +75,9 @@ Given our calculations, implementing a universal testing policy for this disease
 #Exploratory Analysis: Green Buildings     
 In order to determine if investing in a green certification for a new mixed-use building in East Austin would be economically advantageous for the developer, we attempted to provide a more convincing analysis than preliminary recommendations made by the developer's staff member.           
       
-Formulating our own independent analysis, we first narrowed down the available dataset of commercial rental properties to a subset that mimicked the environment presented at the East Austin development site.       
+Formulating our own independent analysis, we first narrowed down the available dataset of commercial rental properties to a subset that mimicked the environment presented at the East Austin development site. We decided to keep buildings with a very low occupation rates in the data set, as a worse case scenario example for our property in East Austin.      
       
-Once we settled on the particular subset of data we sought to analyze, we began to compare the cost of green buildings to nongreen buildings in each cluster, hoping to identify a premium for green buildings that was reflected in the price of renting a green building.        
+Once we settled on the particular subset of data we sought to analyze, we began to compare the cost of green buildings to nongreen buildings in each cluster, hoping to identify a premium for green buildings that was reflected in the rent price. Contrary to the on-staff statistician's recommendation, we did not feel that seperating green building and non-green buildings was a good decision because_____        
        
 After determining that a premium did in fact exist, we drafted our own recommendation regarding the profitabity of "going green" on the development. In order to make such a recommendation, we needed to provide evidence for why the revenue generated from the green rent premium exeeded the costs of constructing a green building.        
 
