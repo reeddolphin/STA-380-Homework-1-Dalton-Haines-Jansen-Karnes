@@ -13,6 +13,7 @@ library(ggplot2)
 library(flexclust)
 library(TeachingDemos)
 library(LICORS)
+library(dplyr)
 library(plotly)
 options("getSymbols.warning4.0"=FALSE)
 options("getSymbols.yahoo.warning"=FALSE)
@@ -25,7 +26,6 @@ set.seed(1)
 #Probability Practice
 
 ### Part A. 
-* The probability that the Random Clickers (RC) selects yes is .5   
 Given a single survey question presented to visitors of a particular website, what percentage of people who truthfully answered the question selected yes?      
 * There are two types of clickers: Random Clickers (RC), and Truthful Clickers (TC)   
 * There are two answers to the survey: yes and no
@@ -150,17 +150,17 @@ We determined that the premium on green rent was 6.75%. This is larger than the 
 
 
 #Bootstrapping and ETF Returns
-*To understand the tradeoffs of risk and return of Exchange Traded Funds, we explored the growth over several years of historical data of the following ETFs:     
+*To understand the tradeoffs of risk and return in selecting Exchange Traded Funds (ETFs), we explored the growth over several years of historical data of the following ETFs:     
     +US domestic equities (SPY: the S&P 500 stock index)     
     +US Treasury bonds (TLT)     
     +Investment-grade corporate bonds (LQD)    
     +Emerging-market equities (EEM)     
     +Real estate (VNQ)    
-*We considered three portfolios with varying levels of risk:     
+*We then considered three portfolios each with varying levels of risk:     
     +Even Split: 20% of  assets in each of the five ETFs     
     +Safer Split: investments  assets in at least three classes    
     +Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk      
-*We have assumed the portfolio is rebalanced for free each day i.e. with zero transaction costs       
+*We have assumed each portfolio is rebalanced for free everyday i.e. with zero transaction costs       
 ```{r}
 
 
@@ -206,11 +206,11 @@ legend(x = "topleft", legend = c("SPY", "TLT", "LQD", "EEM", "VNQ"), lty = 1,col
 
 ```
         
-*Next we plotted the Cumulative Returns of each stock from 2007 to 2017-08-09.          
+*Next we plotted the Cumulative Returns of each stock from 2007-01-3 to 2017-08-09.          
     +This allowed us to visualize each ETF's gains/loses over time.     
     +Visually, it seems that LQD has less volatility than EEM.     
-    +Rather than looking at this graph, we would like a way to standardize our comparison of the risk for investing in each ETF.    
-    +We believe value at risk (VaR) will be a good comparison measure.      
+    +Rather than looking at this graph, we would like a way to standardize our comparison of the risk and return for investing in each ETF.    
+    +We believe value at risk (VaR) will be a good comparison measure here.      
       
 
 
@@ -287,7 +287,7 @@ sim.safe = foreach(i=1:5000, .combine = 'rbind')%do%{
 #Calculate 5% VaR for safe portfolio
 safe.split.VaR = quantile(sim.safe[,n_days], 0.05) - initial.wealth
 ```
-For the Safe Split, we limited our portfolio to only 3 ETFs made up of the S&P, Treasury Bonds, and Corporate Bonds. Treasury Bonds are a safe investment because they are guaranteed by the Federal Government and are virtually risk free. Corporate Bonds are a safe investment because they will pay out unless the company defaults. And the S&P is a good sample of how the entire stock market functions, and is diversified enough to not be too influenced by sector fluctuations.     
+For the Safe Split, we limited our portfolio to only 3 ETFs made up of the S&P, Treasury Bonds, and Corporate Bonds. Treasury Bonds are a safe investment because they are guaranteed by the Federal Government and thus unless the government collapses, virtually risk free. Corporate Bonds are a safe investment because they will pay out unless the company defaults. And the S&P is a good sample of how the entire stock market moves, and is diversified enough to not be too influenced by fluctuations in a single sector.      
 
 Safe Split:     
 *At the five percent level, The value at risk for our even split portfolio is `r safe.split.VaR`.    
@@ -323,7 +323,7 @@ sim.aggressive = foreach(i=1:5000, .combine = 'rbind')%do%{
 #Calculate 5% VaR for aggressive portfolio
 aggressive.split.VaR = quantile(sim.aggressive[,n_days], 0.05) - initial.wealth
 ```
-For the Aggresive Split, we shrunk our portfolio to only 2 ETFs made up of Real Estate and Emerging Market Equities. Real Estate is a risky investment as one could see from the 2008 housing bubble and the forclosures caused by the sub-prime mortgage crisis, but can grow quickly based on speculation. Emerging Market Equities have a high chance of failing due to geopolitics and various other factors, but there are high growth oppurtunities.    
+For the Aggresive Split, we shrunk our portfolio to only 2 ETFs made up of Real Estate and Emerging Market Equities. Real Estate is a risky investment as one could see from the 2008 housing bubble and the forclosures caused by the sub-prime mortgage crisis, but can grow quickly based on speculation. Emerging Market Equities have a high chance of failing due to geopolitics and various other factors, but there are high growth opportunities.    
 
 Aggresive Split:      
 *At the five percent level, the value at risk for our even split portfolio is `r aggressive.split.VaR`.    
@@ -332,7 +332,7 @@ Comparison:
 Even Split - `r even.split.VaR`            
 Safe Split - `r safe.split.VaR`      
 Aggresive Split - `r aggressive.split.VaR`       
-The Safe Split had a 49% decrease in the value at risk than the Even Split. The Aggressive Split had a 112% increase in the value at risk than the Even Split. Our selections for the ETFs in our Safe Split portfolio and in our Aggressive Split portfolio were valid selections. Thus based on an investor's time horizon and specific needs, each portfolio could be more desirable.    
+The Safe Split had a 49% decrease in the value at risk than the Even Split. The Aggressive Split had a 112% increase in the value at risk than the Even Split. Our selections for the ETFs in our Safe Split portfolio and in our Aggressive Split portfolio were valid selections. Thus based on an investor's time horizon and specific needs, each portfolio could be a desirable option.    
 
 # NutrientH2O Market Segmentation 
 ```{r}
