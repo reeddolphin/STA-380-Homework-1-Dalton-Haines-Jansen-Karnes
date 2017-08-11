@@ -11,6 +11,8 @@ library(quantmod)
 library(cluster)
 library(ggplot2)
 library(flexclust)
+library(TeachingDemos)
+library(LICORS)
 options("getSymbols.warning4.0"=FALSE)
 options("getSymbols.yahoo.warning"=FALSE)
 set.seed(1)
@@ -45,7 +47,7 @@ prob.yes.given.TC = (prob.yes - (prob.RC * prob.yes.given.RC))/prob.TC
 The percentage of Truthful Clickers who answered "Yes" to the the simple survey is `r prob.yes.given.TC`
 
 ### Part B.
-Medical test for disease using Bayes Formula. 
+Medical test for disease using Bayes Formula.       
 * The sensitivity is about 0.993. That is, if someone has the disease, there is a probability of 0.993 that they will test positive.     
 * The specificity is about 0.9999. This means that if someone doesn't have the disease, there is probability of 0.9999 that they will test negative.     
 * About 0.0025% of all people in the general population have the disease
@@ -84,11 +86,11 @@ GreenBuildings = read.csv('greenbuildings.csv')
     + Investment-grade corporate bonds (LQD)     
     + Emerging-market equities (EEM)      
     + Real estate (VNQ)     
-* We considered three portfolios with varying levels of risk:
-    +Even Split: 20% of  assets in each of the five ETFs      
+* Given a notional $100,000 to invest, we considered three portfolios with varying levels of risk:
+    + Even Split: 20% of  assets in each of the five ETFs      
     + Safer Split: investments  assets in at least three classes      
     + Aggresive Split: consolidating assets into fewer classes with the promise of higher returns at the cost of accepting greater risk   
-* We have assumed the portfolio is rebalanced for free each day i.e. with zero transaction costs
+* We have assumed the portfolio is rebalanced for free each day i.e. rebalanced with zero transaction costs
 ```{r}
 
 
@@ -104,8 +106,7 @@ EEMa = adjustOHLC(EEM)
 VNQa = adjustOHLC(VNQ)
 
 ```
-#Marshals appropriate evidence
-I think we need to do some sort of visualization here to show why bonds and the s&p500 are 'safe' investments, while real estate and emerging markets are 'risky' investments.
+* First we imported the last 10 years of prices of the 5 ETFs from Yahoo Finance's database. We made sure to account for any splits or dividends in the ETFs over that time. 
 ```{r}
 SPYa.adj <- SPYa[,6]
 TLTa.adj <- TLTa[,6]
@@ -134,7 +135,12 @@ legend(x = "topleft", legend = c("SPY", "TLT", "LQD", "EEM", "VNQ"), lty = 1,col
 
 
 ```
-
+* Next we plotted the Cumulative Returns of each stock from 2007 to 2017-08-09.      
+    + This allowed us to visualize each ETF's gains/loses over time.    
+    + Visually, it seems that LQD has less volatility than EEM.     
+    + Rather than looking at this graph, we would like a way to standardize our comparison of the risk for investing in each ETF.     
+    + We believe value at risk (VaR) will be a good comparison measure.       
+      
 
 
 
@@ -172,9 +178,11 @@ sim.even = foreach(i=1:5000, .combine = 'rbind')%do%{
 
 #Calculate 5% VaR for even portfolio
 even.split.VaR = quantile(sim.even[,n_days], 0.05) - initial.wealth
-print(sprintf('The value at risk at the five percent level for our even split portfolio is %f: ', even.split.VaR))
 ```
+For our Even Split portfolio, we placed $20,000 in each of the 5 ETFs.    
 
+Even Split:     
+* At the five percent level, The value at risk for our even split portfolio is `r even.split.VaR`.      
 
 ###Safer Split
 ```{r}
@@ -207,11 +215,13 @@ sim.safe = foreach(i=1:5000, .combine = 'rbind')%do%{
 
 #Calculate 5% VaR for safe portfolio
 safe.split.VaR = quantile(sim.safe[,n_days], 0.05) - initial.wealth
-print(sprintf('The value at risk at the five percent level for our safe split portfolio is %f: ', safe.split.VaR))
 ```
+For the Safe Split, we limited our portfolio to only 3 ETFs made up of the S&P, Treasury Bonds, and Corporate Bonds. Treasury Bonds are a safe investment because they are guaranteed by the Federal Government and are virtually risk free. Corporate Bonds are a safe investment because they will pay out unless the company defaults. And the S&P is a good sample of how the entire stock market functions, and is diversified enough to not be too influenced by sector fluctuations.     
 
+Safe Split:     
+* At the five percent level, The value at risk for our even split portfolio is `r safe.split.VaR`.
 
-##Aggressive Portfolio
+### Aggressive Portfolio
 ```{r}
 ########################
 ####Aggressive Portfolio
@@ -241,65 +251,119 @@ sim.aggressive = foreach(i=1:5000, .combine = 'rbind')%do%{
 
 #Calculate 5% VaR for aggressive portfolio
 aggressive.split.VaR = quantile(sim.aggressive[,n_days], 0.05) - initial.wealth
-print(sprintf('The value at risk at the five percent level for our aggressive split portfolio is %f: ', aggressive.split.VaR))
-
 ```
+For the Aggresive Split, we shrunk our portfolio to only 2 ETFs made up of Real Estate and Emerging Market Equities. Real Estate is a risky investment as one could see from the 2008 housing bubble and the forclosures caused by the sub-prime mortgage crisis, but can grow quickly based on speculation. Emerging Market Equities have a high chance of failing due to geopolitics and various other factors, but there are high growth oppurtunities.    
 
+Aggresive Split:      
+* At the five percent level, the value at risk for our even split portfolio is `r aggressive.split.VaR`.    
 
-#Market Segmentation and NutrientH2O
+Comparison:       
+Even Split - `r even.split.VaR`            
+Safe Split - `r safe.split.VaR`      
+Aggresive Split - `r aggressive.split.VaR`       
+The Safe Split had a 49% decrease in the value at risk than the Even Split. The Aggressive Split had a 112% increase in the value at risk than the Even Split. Our selections for the ETFs in our Safe Split portfolio and in our Aggressive Split portfolio were valid selections. Thus based on an investor's time horizon and specific needs, each portfolio could be more desirable.    
+
+# NutrientH2O Market Segmentation 
 ```{r}
 social_marketing = read.csv('social_marketing.csv')
-
-sm <- social_marketing[,-1]/rowSums(social_marketing[,-1], na.rm = FALSE)
-sm = cbind(X = social_marketing[,1], sm)
-
-social_marketing$Total = rowSums(social_marketing[,-1], na.rm = FALSE)
-
-total_tweets_by_category = colSums(social_marketing[,-1], na.rm = FALSE)
-sort(total_tweets_by_category)
-#pairs(social_marketing[,-1])
-```
-I created a matrix where I found the proportion that each user tweeted about each category. This was done in an attempt to standardize across the distribution of activity for users. 
-
-I then added the total number of tweets per user to the last column of social_marketing. I then found the total number of tweets for each of the 36 different categories.  
-
-From inspecting the sm dataframe, I am not as concerned about tweets categorized as "spam". No account tweets out more than 2 tweets categorized as spam, and the highest percentage of an account's tweets being categorized as spam is 7%.   
-
-However, "adult" is a little less clear, as there are 2 accounts where half of the tweets are adult. These are probably just horny old men who don't understand how to use twitter and will still consume NutrientH2O, so I think we can leave them in. 
-
-```{r}
-
-apply(social_marketing[,-1] , 2, mean)
-pr.out =prcomp(social_marketing[,-1] , scale =TRUE)
-#biplot (pr.out , scale =0)
-pr.out$rotation
-pr.var =pr.out$sdev^2
-pve=pr.var/sum(pr.var)
-plot(pve , xlab=" Principal Component ", ylab=" Proportion of
-Variance Explained ", ylim=c(0,1) ,type='b')
-plot(cumsum (pve), xlab=" Principal Component ", ylab ="
-Cumulative Proportion of Variance Explained ", ylim=c(0,1) ,
-type='b')
-```
-
-```{r}
-set.seed (3)
-km.out =kmeans(social_marketing[,-1],3, nstart =50)
-km.out$tot.withinss
-
-#plot(social_marketing[,-1], col =(km.out$cluster +1) , main="K-Means Clustering Results with K=3", pch =20, cex =2)
+smm = social_marketing[ , -which(names(social_marketing) %in% c("chatter","spam", 'uncategorized'))]
+sm <- smm[,-1]/rowSums(smm[,-1], na.rm = FALSE)
+sm_scaled <- scale(sm, center=TRUE, scale=TRUE) 
 
 
 ```
+### Pre-Proccessing
+* To start, we found the proportion of each follower's tweets per category over their total tweets.     
+* Next, we determined there was likely no realistic way to use `chatter` and `uncategorized` to find interesting insight into NutrientH2O's followers other than their propensity for twitter. Because we scaled by the total number of tweets, we chose to drop these catagories.    
+* Following the previous point, it did not seem like a feasible idea to create a marketing campaign based off of spam tweets.     
+  + No account tweets out more than 2 tweets categorized as `spam`, and the highest percentage of an account's tweets being categorized as `spam` was 7%, for the simplicity of the model we chose to drop the category anyways.    
+* While it is probably not a strong idea for NutrientH2O to make a marketing campaign based on adult themes, we felt that leaving the `adult` category in the data made sense because it captured some demographic information about NutrientH2O followers.    
+* Although potentially redundant, we chose to also center and scale our data to ensure that our kmean centers would be interpretable.    
+
+### Determining 'K'
+To try and determine the optimal K-number of clusters to group the categories of tweets by NutrientH2O follower, we first expirmented with finding the number of clusters with the highest CH(k) score when running kmeans++. From the graph, the highest score came when the data was grouped into 3 clusters. 
+```{r}
+ch.index = function(x,kmax,iter.max=100,nstart=10,algorithm="Lloyd") {
+  ch = numeric(length=kmax-1)
+    n = nrow(x)
+    for (k in 2:kmax) {
+        a = kmeanspp(x,k,iter.max=iter.max,nstart=nstart,algorithm=algorithm)
+        w = a$tot.withinss
+        b = a$betweenss
+        ch[k-1] = (b/(k-1))/(w/(n-k))
+        }
+    return(list(k=2:kmax,ch=ch))
+}
+```
+       
+
 
 ```{r}
+a1 = ch.index(sm_scaled, 10)
+k1.hat = a1$k[which.max(a1$ch)]
+plot(a1$k,a1$ch, xlab='K', ylab='CH(K)', type='b', main='K-Means Clustering : CH Index vs K' )
+```
+        
+We then ran Kmeans++, as Kmeans++ has a higher chance of optimizing the objective function and finding the most optimal clustering than normal Kmeans clustering.    
+```{r}
+maxCH = kmeanspp(sm_scaled, 3,iter.max=100,nstart=10,algorithm="Lloyd")
+```
 
-data(social_marketing[,-1])
-km    <- kmeans(social_marketing[,-1],3)
-dissE <- daisy(social_marketing[,-1]) 
-dE2   <- dissE^2
-sk2   <- silhouette(km$cl, dE2)
-plot(sk2)
+### Finding Insights
+In order to develop insights, we examine the distance of each category from the center in each of the cluster. We sorted based on distance and created barcharts for each of the clusters.
+```{r}
+ch_cluster_1 = sort(maxCH$centers[1,])
+ch_cluster_2 = sort(maxCH$centers[2,])
+ch_cluster_3 = sort(maxCH$centers[3,])
+par(mfrow=c(1,3))
+barchart(ch_cluster_2)
+barchart(ch_cluster_3)
+barchart(ch_cluster_1)
+
+```
+        
+Inferences:      
+* Something about these three clusters doesn't feel right.    
+* The most noticeable attribute is that the second cluster has no distinct groupings on the high or low end. 
+* Intuition says religion 
+
+
+### Elbow Method
+We continued our exploration for the optimal number of cluster with the implementaiton of the Elbow Method. The Elbow Method requires running kmeans or kmeans++ on multiple k number of clusters and plotting them based on the sum of squared errors (SSE). A visual inspection is performed on the line chart. If there is a noticable inflection point in the line, i.e. at the Elbow, the inflection point is the ideal number of clusters for Kmeans. 
+```{r}
+wss <- matrix(,nrow = length(2:10), ncol = 1);
+
+  for (i in 2:10) wss[i] <- sum(kmeanspp(sm_scaled,i,iter.max=100,nstart=10,algorithm="Lloyd")$withinss)
+
+plot(1:10, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",
+     main="Assessing the Optimal Number of Clusters with the Elbow Method",
+     pch=20, cex=2)
+
+```
+              
+From the graph, there appears ever so slightly to be an inflection point at 6 clusters.     
+```{r}
+maxElbow = kmeanspp(sm_scaled, 6,iter.max=100,nstart=10,algorithm="Lloyd")
+```
+
+```{r}
+elbow_cluster_1 = sort(maxElbow$centers[1,])
+elbow_cluster_2 = sort(maxElbow$centers[2,])
+elbow_cluster_3 = sort(maxElbow$centers[3,])
+elbow_cluster_4 = sort(maxElbow$centers[4,])
+elbow_cluster_5 = sort(maxElbow$centers[5,])
+elbow_cluster_6 = sort(maxElbow$centers[6,])
+par(mfrow=c(3,2))
+#Clusters plotted in order of decreasing withinss
+barchart(elbow_cluster_6)
+barchart(elbow_cluster_2)
+barchart(elbow_cluster_1)
+barchart(elbow_cluster_3)
+barchart(elbow_cluster_4)
+barchart(elbow_cluster_5)
+
+
 
 
 ```
