@@ -81,7 +81,7 @@ Once we settled on the particular subset of data we sought to analyze, we began 
        
 After determining that a premium did in fact exist, we drafted our own recommendation regarding the profitabity of "going green" on the development. In order to make such a recommendation, we needed to provide evidence for why the revenue generated from the green rent premium exeeded the costs of constructing a green building.        
 
-
+We chose to reject the method of eliminating the 10% occupancy because, when observing the occupancy versus rent plots we saw that occupancy did not have a strong impact on rent until about 50%. We felt we wanted to keep all of this data because a low occupancy would be possible for the new building. 
 ```{r}
 gb = read.csv('greenbuildings.csv')
 rent.days=plot_ly(data=gb,x=~total_dd_07,y=~Rent)
